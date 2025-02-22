@@ -25,23 +25,35 @@ public class PetController {
 
     @PostMapping
     public PetDTO savePet(@RequestBody PetDTO petDTO) {
-
         Pet pet = new Pet();
         Customer customer = new Customer();
-        if(petDTO.getOwnerId()==0) {
-            pet.setCustomer(customerService.getCustomerById(2L));
-        }else{
+
+        // Fetch or set the customer
+        if (petDTO.getOwnerId() == 0) {
+            pet.setCustomer(customerService.getCustomerById(1L)); // Ensure customer with ID 2 exists
+        } else {
             customer = customerService.getCustomerById(petDTO.getOwnerId());
             pet.setCustomer(customer);
         }
 
+        // Check if customer exists
+        if (customer == null) {
+            throw new RuntimeException("Customer not found with ID: " + petDTO.getOwnerId());
+        }
+
         pet.setName(petDTO.getName());
         pet.setType(petDTO.getType());
+
+        // Save the pet
         Pet newPet = petService.savePet(pet);
+
+        // Add the pet to the customer's list of pets
         if (customer.getPets() == null) {
             customer.setPets(new ArrayList<>());
         }
         customer.getPets().add(newPet);
+
+        // Convert and return the saved pet as DTO
         return convertToPetTDO(pet);
     }
 
@@ -69,19 +81,17 @@ public class PetController {
 
         }
 
-        public PetDTO convertToPetTDO(Pet pet) {
-            PetDTO petDTO = new PetDTO();
-            petDTO.setId(pet.getId());
-            petDTO.setName(pet.getName());
-            petDTO.setType(pet.getType());
+    private PetDTO convertToPetTDO(Pet pet) {
+        PetDTO petDTO = new PetDTO();
+        petDTO.setId(pet.getId());
+        petDTO.setName(pet.getName());
+        petDTO.setType(pet.getType());
 
-            if (pet.getCustomer() != null) {
-                petDTO.setOwnerId(pet.getCustomer().getId());
-            } else {
-                petDTO.setOwnerId(0);
-            }
-
-            return petDTO;
-
+        if(pet.getCustomer() == null){
+            petDTO.setOwnerId(0);
+        }else{
+            petDTO.setOwnerId(pet.getCustomer().getId());
         }
+        return petDTO;
+    }
 }

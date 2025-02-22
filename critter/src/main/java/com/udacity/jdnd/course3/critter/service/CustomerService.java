@@ -24,6 +24,10 @@ public class CustomerService {
         return customerRepository.getOne(id);
     }
 
+    public Customer save(Customer customer){
+        return customerRepository.save(customer);
+    }
+
     public Customer createCustomer(Customer customer, List<Long>petids){
         List<Pet> pets = new ArrayList<>();
         if(petids!=null && !petids.isEmpty()){
